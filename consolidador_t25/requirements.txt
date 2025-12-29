@@ -1,0 +1,36 @@
+# Reflex Framework
+reflex>=0.6.0
+
+# Database
+sqlmodel>=0.0.14
+psycopg2-binary>=2.9.9
+alembic>=1.13.0
+
+# SFTP Connection
+paramiko>=3.4.0
+
+# Data Processing
+pandas>=2.0.0
+openpyxl>=3.1.2
+xlrd>=2.0.1
+pyxlsb>=1.0.10
+numpy>=1.24.0
+
+# Machine Learning for ETL
+scikit-learn>=1.3.0
+
+# Progress and utilities
+tqdm>=4.66.0
+chardet>=5.2.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Date handling
+python-dateutil>=2.8.2
+
+# File handling
+aiofiles>=23.2.1
+
+# Logging
+loguru>=0.7.2
