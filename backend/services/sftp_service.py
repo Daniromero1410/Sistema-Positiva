@@ -12,6 +12,12 @@ from datetime import datetime
 import os
 
 from config import SFTP_CONFIG
+from services.excel_processor import (
+    es_archivo_tarifas_valido, 
+    extraer_numero_otrosi,
+    clasificar_tipo_archivo,
+    contiene_anexo1
+)
 
 @dataclass
 class SFTPItem:
@@ -242,6 +248,7 @@ class BuscadorAnexos:
     def es_archivo_valido(self, nombre: str) -> Tuple[bool, str, str]:
         """
         Verifica si un archivo es válido para procesamiento.
+        Uses v15.1 detection logic from excel_processor.
         
         Returns:
             Tuple[bool, str, str]: (es_valido, tipo, motivo)
@@ -249,40 +256,17 @@ class BuscadorAnexos:
         if not nombre:
             return False, 'INVALIDO', 'Nombre vacío'
         
-        nombre_upper = nombre.upper()
+        # Use the improved file classification from excel_processor
+        clasificacion = clasificar_tipo_archivo(nombre)
         
-        # Verificar exclusiones
-        for palabra in self.PALABRAS_EXCLUIR:
-            if palabra in nombre_upper:
-                return False, 'EXCLUIDO', f'Contiene {palabra}'
+        if clasificacion['es_valido']:
+            return True, clasificacion['tipo'], f"Detectado como {clasificacion['tipo']}"
         
-        # Verificar patrones válidos
-        if 'ANEXO' in nombre_upper and '1' in nombre_upper:
-            return True, 'ANEXO_1', 'Formato ANEXO 1'
-        
-        if 'TARIFA' in nombre_upper:
-            return True, 'TARIFAS', 'Archivo de tarifas'
-        
-        if 'OTROSI' in nombre_upper or 'OTROSÍ' in nombre_upper:
-            return True, 'OTROSI', 'Otrosí'
-        
-        return False, 'INVALIDO', 'No cumple patrones'
+        return False, 'INVALIDO', clasificacion['motivo_exclusion'] or 'No cumple patrones'
     
     def extraer_numero_otrosi(self, nombre: str) -> Optional[int]:
-        """Extrae el número de otrosí del nombre del archivo."""
-        patrones = [
-            r'OTROSI[_\s#-]*(\d+)',
-            r'OTROSÍ[_\s#-]*(\d+)',
-            r'OT[_\s#-]*(\d+)',
-            r'ADICION[_\s#-]*(\d+)'
-        ]
-        
-        nombre_upper = nombre.upper()
-        for patron in patrones:
-            match = re.search(patron, nombre_upper)
-            if match:
-                return int(match.group(1))
-        return None
+        """Extrae el número de otrosí del nombre del archivo. Uses v15.1 logic."""
+        return extraer_numero_otrosi(nombre)
     
     def buscar_carpeta(self, carpetas: List[str], patron: str) -> Optional[str]:
         """Busca una carpeta que coincida con el patrón."""
